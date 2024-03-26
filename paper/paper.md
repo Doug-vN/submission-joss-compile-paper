@@ -1,56 +1,111 @@
 ---
-title: 'The Experiment Factory: Reproducible Experiment Containers'
+title: 'AnalyZe: A MATLAB Application GUI for Visualizing and Analyzing Electrical Impedance Spectroscopy data in Biological Applications'
 tags:
-  - containers
-  - docker
-  - psychology
-  - reproducibility
-  - Docker
+  - Electrical Impedance Spectroscopy
+  - Equivalent Circuit
+  - Bioimpedance
+  - System Identification
+  - MATLAB
 authors:
- - name: Vanessa Sochat
-   orcid: 0000-0002-4387-3819
-   affiliation: 1
+  - given-names: Douglas C.
+    dropping-particle: van
+    surname: Niekerk
+    orcid: 0000-0002-6449-7808
+    equal-contrib: true
+    affiliation: 1
+  - name: Róisín M. Owens
+	orcid: 0000-0001-7856-2108
+    corresponding: true 
+    affiliation: 1
 affiliations:
- - name: Stanford University Research Computing
    index: 1
-date: 28 November 2017
+ - name: Dept. Chemical Engineering & Biotechnology, University of Cambridge, UK
+date: 25 March 2024
 bibliography: paper.bib
----
 
-# Summary
+# Introduction
+Electrical currents in the biological context are almost exclusively realised as ionic flux and therefore, in order to monitor (and stimulate) biological systems using electronics, electronic flow needs to be coupled ionic flow; this is the province of electrochemistry. Electrodes, inserted into the ionic conducting phase (inhabited by the biology), serve as the interface between ionic flow and electronic flow. However, the voltage-curent relationship in electrochemical systems is notoriously non-linear - in particular, the measured current is a non-linear combination of the current (modulations) contributions from each physical process within the electrochemical cell, including the biological system [REF]. 
 
-The Experiment Factory [@vanessa_sochat_2017_1059119] is Open Source software that makes it easy to generate reproducible behavioral experiments. It offers a browsable, and tested [library](https://expfactory.github.io/experiments/) of experiments, games, and surveys, support for multiple kinds of databases, and [robust documentation](https://expfactory.github.io/expfactory/) for the provided tools. A user interested in deploying a behavioral assessment can simply select a grouping of paradigms from the web interface, and build a container to serve them.
+Small-signal linearization is a common technique when treating with non-linear systems, wherein a small (sinusoidal) perterbation is applied to the system. If the perterbation (i.e. the applied voltage in a potentiostatic scenario) is sufficiently small, relative to the non-linearity of the system, then the corresponding output of the system can be approximated as linearly related to the input perterbation. A linear approximation of the system, in the region of an operating (bias) point, can therefore be measured. For a sinusoidal voltage-current, input-output pair, the the ratio of the voltage to current yields the impedance of the net system. The impedance is a linear combination of the physical phenomena in the system, and can therefore be more easily decomposed into its constituent parts. In the field of electrochemistry, this measurement is known as electrical impedance spectroscopy (EIS) [REF] and the process of decomposing the measurement using an appropriate model of the system, is known as system identification. The most common form of system identification involves modelling the linear system as an equivalent circuit, where each circuit element models the voltage-current relaitonship exhibited by the linear approximation of one of the physical processes participating in the measurment. 
 
-![img/portal.png](img/portal.png)
+# Statement of Need
 
+Fiting equivalent circuits to impedance data is a common exercise and various software solutions exist to meet this need, incuding paid (or 'freemium') software, such as 'EC-lab', 'ZView', 'Nova' and 'PSTrace' as well as open-source solutions such as 'impedance.py' and 'ZFit' [REFS]. In general, the GUI-based solutions are proprietary and closed-source, while open source solutions are implemented as software packages. There therefore exists an accessiblity concern, wherein researchers with a preference for graphical software are limited to the use of inflexible, proprietary solutions, while those with the prerequisite coding skillset, who wish to develop bespoke variations of the impedance post-processing process, are limited to implementing sripted solutions which have a reduced apeal to other researchers in the field. We believe that, in order to democratize the knowledge being developed in the field of impedance data processing and minimize the barrier to adoption of community-driven advancement is the field, a flexible, open-source, GUI based solution is needed. 
 
-# Challenges with Behavioral Research
+'AnalyZe' was initially developed specifically for bioimpedance applications, although the design flexiblity is such that it can be retooled or extended for a variety of applications. In order to maximize utility of this first iteration of the software, the most common bioimpedance scenario is targeted, wherein a collection of biological cells mediate the ionic flux; the flow of ions is considered to follow two paths, the paracellular path (flow between cells) which is primarily resistive, and the trancellular path (flow through cells) which is primarily capactive [REF]. This biological barrier (to current flow) is commonly modelled as a parallel resitance and capactiance. as shown in \autoref{fig:Intro_BarrierImpedance }, the net impedance is, in the most general case, a linear combination of this barrier, the series (electrolyte) resistance of the system, and the impedance contribution of the electrode-electrolyte interfaces. 
 
-The reproducibility crisis [@Ram2013-km, @Stodden2010-cu, @noauthor_2015-ig, @noauthor_undated-sn, @Baker_undated-bx, @Open_Science_Collaboration2015-hb] has been well met by many efforts [@Belmann2015-eb, @Moreews2015-dy, @Boettiger2014-cz, @Santana-Perez2015-wo, @Wandell2015-yt] across scientific disciplines to capture dependencies required for a scientific analysis. Behavioral research is especially challenging, historically due to the need to bring a study participant into the lab, and currently due to needing to develop and validate a well-tested set of paradigms. A common format for these paradigms is a web-based format that can be done on a computer with an internet connection, without one if all resources are provided locally. However, while many great tools exist for creating the web-based paradigms [@De_Leeuw2015-zw, @McDonnell2012-ns], still lacking is assurance that the generated paradigms will be reproducible. Specifically, the following challenges remain:
+![In an generic bioimpedance scenario, ionic flux is induced between two electrodes (conventionally reffered to as the counter and working electodes), such that the flux is impeded by the biological system situated within the applied field. The ionic current flows between the cells, via the paracellular pathway and accross the cells, via the trancellular pathway. Ionic flux in the case of the former is impeded by intercellular junctions resistively, while current flow via the trancellular pathway is impeded primarily capacitvely due to the low permittivity (and subsequent polarization) of the cell membranes. \label{fig:Intro_BarrierImpedance }](Intro_BarrierImpedance .png)
 
- - **Dependencies** such as software, experiment static files, and runtime variables must be captured for reproduciblity.
- - Individual experiments and the library must be **version controlled.**
- - Each experiment could benefit from being maintianed and tested in an **Open Source** fashion. This means that those knowledgable about the paradigm can easily collaborate on code, and others can file issues and ask questions.
- - Tools must allow for **flexibility** to allow different libraries (e.g., JavaScript).
- - The final product should be **easy to deploy** exactly as the creator intended.
+# Current Functionality of 'AnalyZe'
 
-The early version of the Experiment Factory [@Sochat2016-pu] did a good job to develop somewhat modular paradigms, and offered a small set of Python tools to generate local, static batteries from a single repository. Unfortunately, it was severely limited in its ability to scale, and provide reproducible deployments via linux containers [@Merkel2014-da]. The experiments were required to conform to specific set of software, the lack of containerization meant that installation was challenging and error prone, and importantly, it did not meet the complete set of goals outlined above. While the `expfactory-docker` [@noauthor_undated-pi, @Sochat2016-pu] image offered a means to deploy experiments to Amazon Mechanical Turk, it required substantial setup and was primarily developed to meet the specific needs of one lab.
+## Data Handling
 
-![img/expfactory.png](img/expfactory.png)
+## Equivalent Circuit Fitting
 
-# Experiment Container Generation
-The software outlined here, "expfactory," shares little with the original implementation beyond the name. Specifically, it allows for encapsulation of all dependencies and static files required for behavioral experimentation, and flexibility to the user for configuration of the deployment. For usage of a pre-existing experiment container, the user simply needs to run the Docker image. For generation of a new, custom container the generation workflow is typically the following:
- 
- - **Selection** The user browses a [library](https://expfactory.github.io/experiments/) of available experiments, surveys, and games. A preview is available directly in the browser, and data saved to the local machine for inspection. The preview reflects exactly what will be installed into the container.
- - **Generation** The user selects one or more paradigms to add to the container, and clicks "Generate." The user runs the command shown in the browser on his or her local machine to produce the custom recipe for the container, called a Dockerfile.
- - **Building** The user builds the container (and optionally adds the Dockerfile to version control or automated building on Docker Hub) and uses it in production. The same container is then available for others that want to reproduce the experiment.
+## Transfer Function System Identification
 
-At runtime, the user is then able to select deployment customization such as database (MySQL, PostgreSQL, sqlite3, or default of filesystem), and a study identifier.
+## 
 
+# Example Text
 
-# Experiment Container Usage
-Once a container is generated and it's unique identifier and image layers served in a registry like Docker Hub, it can be cited in a paper with confidence that others can run and reproduce the work simply by using it.
+`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
+enables wrapping low-level languages (e.g., C) for speed without losing
+flexibility or ease-of-use in the user-interface. The API for `Gala` was
+designed to provide a class-based and user-friendly interface to fast (C or
+Cython-optimized) implementations of common operations such as gravitational
+potential and force evaluation, orbit integration, dynamical transformations,
+and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
+interfaces well with the implementations of physical units and astronomical
+coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
+`astropy.coordinates`).
 
-More information on experiment development and contribution to the expfactory tools, containers, or library is provided at the Experiment Factory  <a href="https://expfactory.github.io/expfactory/" target="_blank">official documentation</a>. This is an Open Source project, and so <a href="https://www.github.com/expfactory/expfactory/issues" target="_blank">feedback and contributions</a> are encouraged and welcome.
+`Gala` was designed to be used by both astronomical researchers and by
+students in courses on gravitational dynamics or astronomy. It has already been
+used in a number of scientific publications [@Pearson:2017] and has also been
+used in graduate courses on Galactic dynamics to, e.g., provide interactive
+visualizations of textbook material [@Binney:2008]. The combination of speed,
+design, and support for Astropy functionality in `Gala` will enable exciting
+scientific explorations of forthcoming data releases from the *Gaia* mission
+[@gaia] by students and experts alike.
+
+# Mathematics
+
+Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+
+Double dollars make self-standing equations:
+
+$$\Theta(x) = \left\{\begin{array}{l}
+0\textrm{ if } x < 0\cr
+1\textrm{ else}
+\end{array}\right.$$
+
+You can also use plain \LaTeX for equations
+\begin{equation}\label{eq:fourier}
+\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
+\end{equation}
+and refer to \autoref{eq:fourier} from text.
+
+# Citations
+
+Citations to entries in paper.bib should be in
+[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
+format.
+
+If you want to cite a software repository URL (e.g. something on GitHub without a preferred
+citation) then you can do it with the example BibTeX entry below for @fidgit.
+
+For a quick reference, the following citation commands can be used:
+- `@author:2001`  ->  "Author et al. (2001)"
+- `[@author:2001]` -> "(Author et al., 2001)"
+- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
+
+# Figures
+
+Figures can be included like this:
+![Caption for example figure.\label{fig:example}](figure.png)
+and referenced from text using \autoref{fig:example}.
+
+Figure sizes can be customized by adding an optional second parameter:
+![Caption for example figure.](figure.png){ width=20% }
 
 # References
